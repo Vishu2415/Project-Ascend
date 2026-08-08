@@ -67,4 +67,4 @@ def generate_response(prompt: str)->str:
         # Print the real error in the terminal for developers.
         print(f"LLM Error: {e}")
         # Return a readable error instead of crashing the backend.
-        return "Sorry, something went wrong while generating the response."
+        raise

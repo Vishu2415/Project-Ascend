@@ -8,10 +8,13 @@ from app.models.chat_models import ChatRequest, ChatResponse
 # AI response generate karne wala function import kar rahe hain.
 from app.services.llm_service import generate_response
 
+from fastapi.responses import JSONResponse
+
+import logging
 # FastAPI application create kar rahe hain.
 app = FastAPI()
 
-
+logger = logging.getLogger(__name__)
 # =====================================================
 # Home Route
 # =====================================================
@@ -59,8 +62,24 @@ def chat(request: ChatRequest):
     # =====================================================
     # Validation pass ho gayi.
     # User ka prompt AI model ko bhejenge.
-    # AI response generate karega.
-    response = generate_response(request.prompt)
+    try:
+        
+        # Ai response generate krni ki kosish kr rhe hai
+        response = generate_response(request.prompt)
+    
+    except Exception as e:
+        
+        logger.error(f'AI generation failed: {e}')
+        # Agar AI call ke during koi unexpected error aata hai,
+        # to application crash hone ke bajay yahan aa jayegi. 
+        return JSONResponse(
+            status_code=500,
+            content=ChatResponse(
+            success = False,
+            message = "Unable to generate response",
+            response = "Sorry, something went wrong while generating the response"
+            ).model_dump()
+        )   
 
     # =====================================================
     # RESPONSE
