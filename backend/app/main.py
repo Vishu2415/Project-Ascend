@@ -67,6 +67,8 @@ def chat(request: ChatRequest):
     # =====================================================
     # AI ka final response JSON format me
     # browser/client ko return karenge.
-    return {
-        "response": response
-    }
+    return ChatResponse(    
+        success = True,
+        message = "Response generated successfully",
+        response= response
+    )

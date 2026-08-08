@@ -19,5 +19,11 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     
+    # batayenga ki request successful process hui ki nhi 
+    success : bool
+    
+    # User ko response ke bare me ek short message dega
+    message : str
+    
     # AI ka final response
-    response: str    
+    response : str    

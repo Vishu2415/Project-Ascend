@@ -42,6 +42,8 @@ Status: ✅ Completed
 Goal:
 Make Backend Safe.
 
+Status: ✅ Completed
+
 ---
 
 ## Chapter 4 - System Prompts
@@ -52,6 +54,8 @@ Make Backend Safe.
 
 Goal:
 Control AI Behavior.
+
+Status: ✅ Completed
 
 ---
 
@@ -64,6 +68,8 @@ Control AI Behavior.
 Goal:
 Professional APIs.
 
+Status: ✅ Completed
+
 ---
 
 ## Chapter 6 - POST APIs
@@ -74,6 +80,8 @@ Professional APIs.
 
 Goal:
 Real World API Design.
+
+Status: ✅ Completed
 
 ---
 
