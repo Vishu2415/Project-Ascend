@@ -2,6 +2,10 @@
 # FastAPI app banane aur custom HTTP errors bhejne ke liye.
 from fastapi import FastAPI, HTTPException
 
+# SQLite Database ko import kr rhe hai
+from app.database.database import get_connection
+from app.database.database import create_table
+
 # Chat request aur response models import kar rahe hain.
 from app.models.chat_models import ChatRequest, ChatResponse
 
@@ -13,6 +17,9 @@ from fastapi.responses import JSONResponse
 import logging
 # FastAPI application create kar rahe hain.
 app = FastAPI()
+
+# Database tables create kar rahe hain.
+create_table()
 
 logger = logging.getLogger(__name__)
 # =====================================================
