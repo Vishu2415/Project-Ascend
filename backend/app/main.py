@@ -142,7 +142,8 @@ from fastapi import FastAPI, HTTPException
 # SQLite database se required functions import kar rahe hain.
 from app.database.database import (
     create_table,
-    save_messages
+    save_messages,
+    get_recent_messages
 )
 
 # Chat request aur response models import kar rahe hain.
@@ -169,7 +170,6 @@ create_table()
 
 # Logger create kar rahe hain.
 logger = logging.getLogger(__name__)
-
 
 # =====================================================
 # Home Route
@@ -223,9 +223,11 @@ def chat(request: ChatRequest):
     # Validation pass ho gayi.
     # User ka prompt AI model ko bhejenge.
     try:
+        
+        history = get_recent_messages(limit=10)
 
         # AI response generate karne ki koshish kar rahe hain.
-        response = generate_response(request.prompt)
+        response = generate_response(request.prompt,history)
 
     except Exception as e:
 

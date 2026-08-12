@@ -76,6 +76,29 @@ def get_messages():
      
      return messages
  
+def get_recent_messages(limit: int=10):
+     
+     connection = get_connection()
+     
+     cursor = connection.cursor()
+     
+     cursor.execute(
+         """
+         SELECT prompt, response
+         FROM messages 
+         ORDER BY id DESC
+         LIMIT ?
+         """,
+         (limit,)
+         )
+     
+     messages = cursor.fetchall()
+     
+     connection.close()
+     
+     return messages
+     
+ 
 # NEW: Existing message ko update karne wala function.
 def update_message(message_id: int, prompt: str, response: str):
 

@@ -110,9 +110,20 @@ openrouter_client = OpenAI(
 
 
 # Ye function AI se response generate karega.
-def generate_response(prompt: str) -> str:
+def generate_response(prompt: str, history=None) -> str:
 
     try:
+        
+        # NEW: Previous conversation ko AI ke liye readable text format me convert kar rahe hain.
+        history_text=""
+         
+        # NEW: Agar previous messages available hain to unhe context me add kar rahe hain.
+        if history:
+            for old_prompt, old_response in reversed(history):
+                history_text += f"""
+                User : {old_prompt}
+                Assistant : {old_response}
+                """
 
         # Configuration me Gemini select hai to Gemini use hoga.
         if settings.ai_provider == "gemini":
@@ -122,10 +133,16 @@ def generate_response(prompt: str) -> str:
 
                 # Configuration se model name le rahe hain.
                 model=settings.model_name,
-
-                # User ka prompt Gemini ko bhej rahe hain.
-                contents=prompt,
-
+                
+                # NEW: Previous history aur current prompt Gemini ko context ke saath bhej rahe hain.
+                contents=f"""
+                Previous Conversion:
+                {history_text}
+                
+                Current user message:
+                {prompt}
+                """,
+                
                 # AI ke behavior ke liye system instruction define kar rahe hain.
                 config=types.GenerateContentConfig(
 
@@ -174,6 +191,11 @@ def generate_response(prompt: str) -> str:
                         - If you don't know something, honestly say you don't know.
                         - Always reply in Markdown.
                         """
+                    },
+                    {
+                         # NEW: Previous conversation ko AI ke context me bhej rahe hain.
+                         "role":"user",
+                         "content":f"Previous Conversion:\n{history_text}"
                     },
                     {
                         # User ka message.
