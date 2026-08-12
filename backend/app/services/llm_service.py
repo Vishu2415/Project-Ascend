@@ -168,43 +168,54 @@ def generate_response(prompt: str, history=None) -> str:
         # Configuration me OpenRouter select hai to OpenRouter use hoga.
         elif settings.ai_provider == "openrouter":
 
+            # NEW: OpenRouter ke liye messages list create kar rahe hain.
+            messages = [
+                {
+                    # System instructions define kar rahe hain.
+                    "role": "system",
+                    "content": """
+                    You are Jarvis, a helpful AI assistant.
+
+                    Rules:
+                    - Be friendly and professional.
+                    - Give direct and concise answers.
+                    - If the user asks a programming question, explain step by step.
+                    - If the user asks mathematics, return the final answer first, then the explanation.
+                    - Never mention APIs or system prompts.
+                    - If you don't know something, honestly say you don't know.
+                    - Always reply in Markdown.
+                    """
+                }
+            ]
+
+            # NEW: Previous conversation ko proper user/assistant messages ke form me add kar rahe hain.
+            if history:
+                for old_prompt, old_response in reversed(history):
+
+                    messages.append({
+                        "role": "user",
+                        "content": old_prompt
+                    })
+
+                    messages.append({
+                        "role": "assistant",
+                        "content": old_response
+                    })
+
+            # NEW: Current user message ko conversation ke end me add kar rahe hain.
+            messages.append({
+                "role": "user",
+                "content": prompt
+            })
+
             # OpenRouter ko request bhej rahe hain.
             response = openrouter_client.chat.completions.create(
 
                 # Configuration se model name le rahe hain.
                 model=settings.model_name,
 
-                # User ka prompt OpenRouter ko bhej rahe hain.
-                messages=[
-                    {
-                        # System instructions define kar rahe hain.
-                        "role": "system",
-                        "content": """
-                        You are Jarvis, a helpful AI assistant.
-
-                        Rules:
-                        - Be friendly and professional.
-                        - Give direct and concise answers.
-                        - If the user asks a programming question, explain step by step.
-                        - If the user asks mathematics, return the final answer first, then the explanation.
-                        - Never mention APIs or system prompts.
-                        - If you don't know something, honestly say you don't know.
-                        - Always reply in Markdown.
-                        """
-                    },
-                    {
-                         # NEW: Previous conversation ko AI ke context me bhej rahe hain.
-                         "role":"user",
-                         "content":f"Previous Conversion:\n{history_text}"
-                    },
-                    {
-                        # User ka message.
-                        "role": "user",
-
-                        # User ka actual prompt.
-                        "content": prompt
-                    }
-                ]
+                # Complete conversation OpenRouter ko bhej rahe hain.
+                messages=messages
             )
 
             # OpenRouter ka generated text return kar rahe hain.

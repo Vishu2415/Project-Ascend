@@ -158,6 +158,9 @@ from fastapi.responses import JSONResponse
 # Application errors ko terminal me log karne ke liye logging import kar rahe hain.
 import logging
 
+# NEW: Unique session ID generate karne ke liye UUID module import kar rahe hain.
+import uuid
+
 
 # FastAPI application create kar rahe hain.
 app = FastAPI()
@@ -214,8 +217,7 @@ def chat(request: ChatRequest):
             status_code=400,
             detail="Prompt cannot be empty"
         )
-
-
+        
     # =====================================================
     # AI CALL
     # =====================================================
@@ -224,7 +226,11 @@ def chat(request: ChatRequest):
     # User ka prompt AI model ko bhejenge.
     try:
         
-        history = get_recent_messages(limit=10)
+        
+        history = get_recent_messages(
+            request.session_id,
+            limit=10
+            )
 
         # AI response generate karne ki koshish kar rahe hain.
         response = generate_response(request.prompt,history)
@@ -252,7 +258,8 @@ def chat(request: ChatRequest):
     # NEW: User ka prompt aur AI response database me save kar rahe hain.
     save_messages(
         request.prompt,
-        response
+        response,
+        request.session_id
     )
 
 

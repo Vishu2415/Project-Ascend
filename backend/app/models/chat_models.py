@@ -11,6 +11,9 @@ class ChatRequest(BaseModel):
     # User ka Message
     # FastAPI automatically check krega ki ye string ho
     prompt : str
+    
+    # NEW: Conversation ko identify karne ke liye session ID.
+    session_id : str
 
 # -----------------------------
 # Response Model

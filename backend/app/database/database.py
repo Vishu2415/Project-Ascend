@@ -25,17 +25,39 @@ def create_table():
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS messages (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            session_id TEXT NOT NULL,
             prompt TEXT NOT NULL,
             response TEXT NOT NULL
         )
     """)
     
+    # NEW: Existing database me session_id column check kar rahe hain.
+    cursor.execute("PRAGMA table_info(messages)")
+     
+    # NEW: Existing columns ki information read kar rahe hain.
+    columns = [column[1] for column in cursor.fetchall()]
+    
+    # NEW: Agar session_id column nahi hai to add kar rahe hain. 
+    if "session_id" not in columns:
+        cursor.execute(
+            "ALTER TABLE messages ADD COLUMN session_id TEXT"
+        )
+    
+    # NEW: Column add hone ke baad existing messages ke liye default session set kar rahe hain.
+    cursor.execute(
+        """
+        UPDATE messages
+        SET session_id = 'default'
+        WHERE session_id is NULL
+        """
+        )    
+     
     connection.commit()
     
     connection.close()
 
 # User kak prompt aur AI response database me save karne wala function
-def save_messages(prompt: str, response: str):
+def save_messages(prompt: str, response: str, session_id:str):
     
     # Database connection create kr rhe hai 
     connection = get_connection()
@@ -44,12 +66,13 @@ def save_messages(prompt: str, response: str):
     cursor = connection.cursor()
     
     # Prompt or response ko message table me insert kr rhe hai
+    # NEW: Message ko uske session ke saath database me insert kar rahe hain.
     cursor.execute(
         """
-        INSERT INTO messages (prompt, response)
-        VALUES (?, ?)
+        INSERT INTO messages (session_id, prompt, response)
+        VALUES (?, ?, ?)
         """,
-        (prompt, response)
+        (session_id, prompt, response)
     )
     
     # Insert ki hui information database me permanently save kar rahe hain.
@@ -76,20 +99,22 @@ def get_messages():
      
      return messages
  
-def get_recent_messages(limit: int=10):
+def get_recent_messages(session_id: str, limit: int=10):
      
      connection = get_connection()
      
      cursor = connection.cursor()
      
+     # NEW: Sirf given session ki recent conversation history nikal rahe hain.
      cursor.execute(
          """
          SELECT prompt, response
          FROM messages 
+         WHERE session_id = ?
          ORDER BY id DESC
          LIMIT ?
          """,
-         (limit,)
+         (session_id, limit)
          )
      
      messages = cursor.fetchall()
