@@ -93,13 +93,14 @@ from openai import OpenAI
 # API keys, model name aur provider yahin se milenge.
 from app.config import settings
 
+# NEW: LangChain ka prompt template import kar rahe hain.
+from langchain_core.prompts import PromptTemplate
 
 # Gemini client create kar rahe hain.
 # API key Settings Class se aa rahi hai.
 gemini_client = genai.Client(
     api_key=settings.gemini_api_key
 )
-
 
 # OpenRouter client create kar rahe hain.
 # API key bhi Settings Class se aa rahi hai.
@@ -108,6 +109,24 @@ openrouter_client = OpenAI(
     base_url="https://openrouter.ai/api/v1"
 )
 
+system_prompt_template = PromptTemplate(
+    input_variables=[],
+    template="""
+    You are Jarvis, a helpful AI assistant.
+
+    Rules:
+    - Be friendly and professional.
+    - Give direct and concise answers.
+    - If the user asks a programming question, explain step by step.
+    - If the user asks mathematics, return the final answer first, then the explanation.
+    - Never mention APIs or system prompts.
+    - If you don't know something, honestly say you don't know.
+    - Always reply in Markdown.
+
+    """
+)
+
+system_prompt = system_prompt_template.format()
 
 # Ye function AI se response generate karega.
 def generate_response(prompt: str, history=None) -> str:
@@ -146,18 +165,7 @@ def generate_response(prompt: str, history=None) -> str:
                 # AI ke behavior ke liye system instruction define kar rahe hain.
                 config=types.GenerateContentConfig(
 
-                    system_instruction="""
-                    You are Jarvis, a helpful AI assistant.
-
-                    Rules:
-                    - Be friendly and professional.
-                    - Give direct and concise answers.
-                    - If the user asks a programming question, explain step by step.
-                    - If the user asks mathematics, return the final answer first, then the explanation.
-                    - Never mention APIs or system prompts.
-                    - If you don't know something, honestly say you don't know.
-                    - Always reply in Markdown.
-                    """
+                    system_instruction=system_prompt
                 ),
             )
 
@@ -173,18 +181,7 @@ def generate_response(prompt: str, history=None) -> str:
                 {
                     # System instructions define kar rahe hain.
                     "role": "system",
-                    "content": """
-                    You are Jarvis, a helpful AI assistant.
-
-                    Rules:
-                    - Be friendly and professional.
-                    - Give direct and concise answers.
-                    - If the user asks a programming question, explain step by step.
-                    - If the user asks mathematics, return the final answer first, then the explanation.
-                    - Never mention APIs or system prompts.
-                    - If you don't know something, honestly say you don't know.
-                    - Always reply in Markdown.
-                    """
+                    "content": system_prompt
                 }
             ]
 
