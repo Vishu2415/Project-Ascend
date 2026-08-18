@@ -31,6 +31,16 @@ def create_table():
         )
     """)
     
+    # NEW: Har session ki conversation summary store karne ke liye table create kar rahe hain.
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS session_summaries(
+            session_id TEXT PRIMARY KEY,
+            summary TEXT NOT NULL
+        )
+        """
+        )
+    
     # NEW: Existing database me session_id column check kar rahe hain.
     cursor.execute("PRAGMA table_info(messages)")
      
@@ -80,6 +90,45 @@ def save_messages(prompt: str, response: str, session_id:str):
     
     # Database connection close kar rahe hain.
     connection.close()
+
+def save_session_summary(session_id: str, summary: str):
+
+    connection = get_connection()
+
+    cursor = connection.cursor()
+
+    cursor.execute(
+        """
+        INSERT OR REPLACE INTO session_summaries (session_id, summary)
+        VALUES (?, ?)
+        """,
+        (session_id, summary)
+    )
+
+    connection.commit()
+
+    connection.close()    
+
+def get_session_summary(session_id: str):
+
+    connection = get_connection()
+
+    cursor = connection.cursor()
+
+    cursor.execute(
+        """
+        SELECT summary
+        FROM session_summaries
+        WHERE session_id = ?
+        """,
+        (session_id,)
+    )
+
+    result = cursor.fetchone()
+
+    connection.close()
+
+    return result[0] if result else ""
     
 def get_messages():
      
@@ -122,7 +171,35 @@ def get_recent_messages(session_id: str, limit: int=10):
      connection.close()
      
      return messages
+
+# NEW: Current session me total messages count karne wala function.
+def get_message_count(session_id: str):
+    
+    # Database connection create kar rahe hain.
+    connection = get_connection()
+    
+    # SQL commands execute karne ke liye cursor create kar rahe hain.
+    cursor = connection.cursor()
+    
+    # NEW: Given session ke total messages count kar rahe hain.
+    cursor.execute(
+    """
+    SELECT COUNT(*)
+    FROM messages
+    WHERE session_id = ?
+    """,
+    (session_id,)
+    )
+    
+    # Count ka result retrieve kar rahe hain.
+    count = cursor.fetchone()[0]
      
+    # Database connection close kar rahe hain.
+    connection.close()
+    
+    # Total message count return kar rahe hain.
+    return count
+         
  
 # NEW: Existing message ko update karne wala function.
 def update_message(message_id: int, prompt: str, response: str):

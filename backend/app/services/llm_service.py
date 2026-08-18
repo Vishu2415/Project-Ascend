@@ -128,13 +128,70 @@ system_prompt_template = PromptTemplate(
 
 system_prompt = system_prompt_template.format()
 
+def generate_summary(history):
+
+    history_text = ""
+
+    for old_prompt, old_response in reversed(history):
+        history_text += f"""
+        User: {old_prompt}
+        Assistant: {old_response}
+        """
+
+    summary_prompt = f"""
+    Summarize the following conversation briefly.
+
+    Keep only important information, user preferences,
+    important facts, decisions, and ongoing topics.
+
+    Conversation:
+    {history_text}
+    """
+
+    if settings.ai_provider == "gemini":
+
+        response = gemini_client.models.generate_content(
+            model=settings.model_name,
+            contents=summary_prompt
+        )
+
+        return response.text
+
+    elif settings.ai_provider == "openrouter":
+
+        response = openrouter_client.chat.completions.create(
+            model=settings.model_name,
+            messages=[
+                {
+                    "role": "user",
+                    "content": summary_prompt
+                }
+            ]
+        )
+
+        return response.choices[0].message.content
+
+    else:
+        raise ValueError(
+            f"Unsupported AI provider: {settings.ai_provider}"
+        )
+
 # Ye function AI se response generate karega.
-def generate_response(prompt: str, history=None) -> str:
+def generate_response(prompt: str, history=None, summary="") -> str:
 
     try:
         
         # NEW: Previous conversation ko AI ke liye readable text format me convert kar rahe hain.
         history_text=""
+        
+        # NEW: Saved session summary ko AI context mein add kar rahe hain.
+        summary_text=""
+        
+        if summary:
+            summary_text=f"""
+            session_summary:
+            {summary}
+            """
          
         # NEW: Agar previous messages available hain to unhe context me add kar rahe hain.
         if history:
@@ -155,6 +212,8 @@ def generate_response(prompt: str, history=None) -> str:
                 
                 # NEW: Previous history aur current prompt Gemini ko context ke saath bhej rahe hain.
                 contents=f"""
+                {summary_text}
+                
                 Previous Conversion:
                 {history_text}
                 
@@ -184,6 +243,12 @@ def generate_response(prompt: str, history=None) -> str:
                     "content": system_prompt
                 }
             ]
+
+            if summary:
+                messages.append({
+                    "role": "system",
+                    "content": f"Session Summary:\n{summary}"
+                })    
 
             # NEW: Previous conversation ko proper user/assistant messages ke form me add kar rahe hain.
             if history:

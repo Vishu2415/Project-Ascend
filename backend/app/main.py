@@ -143,14 +143,20 @@ from fastapi import FastAPI, HTTPException
 from app.database.database import (
     create_table,
     save_messages,
-    get_recent_messages
+    get_recent_messages,
+    save_session_summary,
+    get_session_summary,
+    get_message_count
 )
 
 # Chat request aur response models import kar rahe hain.
 from app.models.chat_models import ChatRequest, ChatResponse
 
 # AI response generate karne wala function import kar rahe hain.
-from app.services.llm_service import generate_response
+from app.services.llm_service import (
+    generate_response,
+    generate_summary
+)
 
 # JSON response manually return karne ke liye import kar rahe hain.
 from fastapi.responses import JSONResponse
@@ -165,6 +171,8 @@ import uuid
 # FastAPI application create kar rahe hain.
 app = FastAPI()
 
+# NEW: Itne messages hone ke baad conversation summary update karenge.
+SUMMARY_THRESHOLD = 3
 
 # Database tables create kar rahe hain.
 # Application start hote hi required table ensure ho jayegi.
@@ -231,9 +239,18 @@ def chat(request: ChatRequest):
             request.session_id,
             limit=10
             )
+        
+        # NEW: Database se current session ki saved summary nikal rahe hain.
+        summary=get_session_summary(
+            request.session_id
+        )
 
         # AI response generate karne ki koshish kar rahe hain.
-        response = generate_response(request.prompt,history)
+        response = generate_response(
+            request.prompt,
+            history,
+            summary
+        )
 
     except Exception as e:
 
@@ -261,7 +278,25 @@ def chat(request: ChatRequest):
         response,
         request.session_id
     )
-
+    
+    # NEW: Current session ke total messages count kar rahe hain.
+    message_count = get_message_count(
+        request.session_id
+    ) + 1
+    
+    # NEW: Sirf threshold reach hone par summary generate kar rahe hain.
+    if message_count >=SUMMARY_THRESHOLD:
+        
+        # Conversation ka updated summary generate kar rahe hain.
+        summary=generate_summary(
+            history + [(request.prompt, response)]
+        )
+        
+        # Updated summary database me save kar rahe hain.
+        save_session_summary(
+            request.session_id,
+            summary
+        )
 
     # =====================================================
     # RESPONSE

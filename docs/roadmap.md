@@ -148,6 +148,7 @@ Status: ✅ Completed
 - Prompt Templates
 - Output Parsers
 
+Status: ✅ Completed
 ---
 
 ## Chapter 13 - Chat Memory
