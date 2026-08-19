@@ -156,6 +156,7 @@ Status: ✅ Completed
 - Window Memory
 - Summary Memory
 
+Status: ✅ Completed
 ---
 
 ## Chapter 14 - Tools
@@ -163,6 +164,7 @@ Status: ✅ Completed
 - Search
 - Python Tool
 
+Status: ✅ Completed
 ---
 
 ## Chapter 15 - Agents
